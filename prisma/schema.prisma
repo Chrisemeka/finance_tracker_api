@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int           @id @default(autoincrement())
+  email              String        @unique
+  password           String
+  name               String
+  currencyPreference String        @default("USD")
+  monthlyIncome      Decimal       @default(0.00) @db.Decimal(12, 2)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  transactions       Transaction[]
+  budgets            Budget[]
+
+  @@map("users")
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  type        String   @default("expense") // "income" or "expense"
+  category    String
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime @default(now())
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model Budget {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  category  String
+  amount    Decimal  @db.Decimal(10, 2)
+  month     DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, month], name: "unique_user_category_month")
+  @@map("budgets")
+}
