@@ -38,9 +38,11 @@ router.post('/transactions', authMiddleWare, validateData(createTransactionSchem
 
     const userId = req.user!.userId;
 
+    const normalizedCategory = category.toLowerCase();
+
     try {
         const newTransaction: Transaction = await prisma.transaction.create({
-            data: {userId, type, category, amount, description, date: date || new Date()}
+            data: {userId, type, category: normalizedCategory, amount, description, date: date || new Date()}
         })
 
         res.status(201).json({
@@ -80,7 +82,7 @@ router.put('/transactions/:id', authMiddleWare, validateData(updateTransactionSc
         })
         res.status(200).json({message: 'Task Updated Successfully', task: updateTransaction})
     } catch (error) {
-        console.error('Create Transaction Error: ', error)
+        console.error('Update Transaction Error: ', error)
         res.status(500).json({message: 'Failed to update transaction'})   
     }
 })
