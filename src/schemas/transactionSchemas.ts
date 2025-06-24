@@ -21,10 +21,11 @@ export const createTransactionSchema = z.object({
             .max(200, 'Description must not exceed 200 characters')
             .optional(),
             
-        date: z
-            .string()
-            .datetime()
-            .or(z.date())       
+        date: z.union([
+        z.string().date(),      //  "2025-06-04"
+        z.string().datetime(),  //  "2025-06-04T00:00:00.000Z"
+        z.date()               //  Date object
+    ])       
 });
 
 

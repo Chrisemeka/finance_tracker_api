@@ -41,8 +41,23 @@ router.post('/transactions', authMiddleWare, validateData(createTransactionSchem
     const normalizedCategory = category.toLowerCase();
 
     try {
+        // convert date string to date object
+        let transactionDate: Date;
+        if (date) {
+            transactionDate = new Date(date); //  This converts "2025-06-04" to proper Date
+        } else {
+            transactionDate = new Date();
+        }
+
+        // ✅ Validate the date is valid
+        if (isNaN(transactionDate.getTime())) {
+            res.status(400).json({error: 'Invalid date format'});
+            return;
+        }
+
+
         const newTransaction: Transaction = await prisma.transaction.create({
-            data: {userId, type, category: normalizedCategory, amount, description, date: date || new Date()}
+            data: {userId, type, category: normalizedCategory, amount, description, date: transactionDate  }
         })
 
         res.status(201).json({
@@ -60,9 +75,10 @@ router.put('/transactions/:id', authMiddleWare, validateData(updateTransactionSc
     const { type, category, amount, description, date } = req.body as UpdateTransactionInput
 
     const id = parseInt(req.params.id);
+    const userId = req.user!.userId;
 
     if (isNaN(id)) {
-        res.status(400).json({error: 'Invalid task ID'});
+        res.status(400).json({error: 'Invalid transaction ID'});
     }
 
     try {
@@ -72,6 +88,10 @@ router.put('/transactions/:id', authMiddleWare, validateData(updateTransactionSc
 
         if (!transaction) {
         res.status(404).json({error: 'Transaction not found'})
+        } else {
+            if (transaction.userId !== userId) {
+                res.status(403).json({error: 'Unauthorized'})
+            }
         }
 
         const updateTransaction = await prisma.transaction.update({
@@ -90,18 +110,24 @@ router.put('/transactions/:id', authMiddleWare, validateData(updateTransactionSc
 // DELETE a transaction
 router.delete('/transactions/:id', authMiddleWare, async (req: Request & {user?: {userId: number}}, res: Response) => {
     const id = parseInt(req.params.id)
+    const userId = req.user!.userId;
+
 
     if (isNaN(id)) {
         res.status(400).json({error: 'Invalid task ID'});
     }
 
     try {
-        const transaction = await prisma.transaction.findUnique({
+        const transaction = await prisma.transaction.findUnique({  
             where: {id: id}
         })
 
         if (!transaction) {
-            res.status(404).json({error: 'Transaction not Found'})
+        res.status(404).json({error: 'Transaction not found'})
+        } else {
+            if (transaction.userId !== userId) {
+                res.status(403).json({error: 'Unauthorized'})
+            }
         }
 
         const deletedTransaction = await prisma.transaction.delete({
