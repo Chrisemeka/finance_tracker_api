@@ -1,4 +1,4 @@
-# finance_tracker_api# Personal Finance Tracker API
+# Finance Tracker API
 
 A comprehensive RESTful API for managing personal finances, built with Node.js, Express, TypeScript, and Prisma ORM with MySQL database.
 
