@@ -322,10 +322,3 @@ src/
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Create a Pull Request
 
-## License
-
-This project is licensed under the ISC License.
-
-## Support
-
-For questions or issues, please open an issue in the repository or contact the development team.
