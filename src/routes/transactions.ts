@@ -7,11 +7,36 @@ import { CreateTransactionInput, createTransactionSchema, UpdateTransactionInput
 
 const router = express.Router();
 
-// GET all user transactions
-router.get('/transactions', authMiddleWare, async (req: Request & {user?: {userId: number}}, res: Response) => {
-    const transactions: Transaction[] = await prisma.transaction.findMany();
-    res.json(transactions);
-})
+// GET all user transactionss
+router.get('/transactions', authMiddleWare, async (req: Request & { user?: { userId: number } }, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
+
+  try {
+    const transactions = await prisma.transaction.findMany({
+      where: { userId: req.user!.userId },
+      skip,
+      take: limit,
+      orderBy: { date: 'desc' }, // Most recent first
+    });
+
+    const total = await prisma.transaction.count({ where: { userId: req.user!.userId } });
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      data: transactions,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems: total,
+        itemsPerPage: limit,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
+});
 
 // GET a single transaction
 router.get('/transactions/:id', authMiddleWare, async (req: Request & {user?: {userId: number}}, res: Response) => {

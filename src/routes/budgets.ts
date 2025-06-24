@@ -7,12 +7,6 @@ import { CreateBudgetInput, createBudgetSchema} from '../schemas/budgetSchemas';
 
 const router = express.Router();
 
-// GET all user budgets
-// router.get('/budgets', authMiddleWare, async (req: Request & {user?: {userId: number}}, res: Response) => {
-//     const budgets: Budget[] = await prisma.budget.findMany();
-//     res.json(budgets);
-// })
-
 // POST to create a new budget
 router.post('/budgets', authMiddleWare, validateData(createBudgetSchema), async (req: Request & {user?: {userId: number}}, res: Response) => {
     const { category, amount, month } = req.body as CreateBudgetInput
